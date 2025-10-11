@@ -3,9 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, TrendingDown, TrendingUp, Bell, CheckCircle2, Activity } from "lucide-react";
+import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 const Monitoring = () => {
-  const alerts = [
+  const [alerts, setAlerts] = useState([
     {
       id: 1,
       severity: "Critical",
@@ -42,7 +44,29 @@ const Monitoring = () => {
       time: "2 hours ago",
       trend: "up"
     }
-  ];
+  ]);
+
+  const handleInvestigate = (alert: typeof alerts[0]) => {
+    toast({
+      title: "Opening Investigation",
+      description: `Launching deep analysis for ${alert.vendor}...`
+    });
+  };
+
+  const handleDismiss = (alertId: number) => {
+    setAlerts(alerts.filter(a => a.id !== alertId));
+    toast({
+      title: "Alert Dismissed",
+      description: "Alert has been removed from your active list"
+    });
+  };
+
+  const handleViewAll = () => {
+    toast({
+      title: "Loading All Alerts",
+      description: "Opening comprehensive alert dashboard..."
+    });
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -69,7 +93,7 @@ const Monitoring = () => {
     },
     {
       title: "Active Alerts",
-      value: "23",
+      value: alerts.length.toString(),
       subtitle: "Requiring attention",
       icon: Bell
     },
@@ -80,6 +104,15 @@ const Monitoring = () => {
       icon: TrendingUp
     }
   ];
+
+  const alertDistribution = {
+    Critical: alerts.filter(a => a.severity === "Critical").length,
+    High: alerts.filter(a => a.severity === "High").length,
+    Medium: alerts.filter(a => a.severity === "Medium").length,
+    Low: alerts.filter(a => a.severity === "Low").length
+  };
+
+  const totalAlerts = Object.values(alertDistribution).reduce((a, b) => a + b, 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,47 +149,54 @@ const Monitoring = () => {
         <Card className="bg-card border-border p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-foreground">Active Alerts</h3>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleViewAll}>
               View All Alerts
             </Button>
           </div>
 
           <div className="space-y-4">
-            {alerts.map((alert) => (
-              <div
-                key={alert.id}
-                className="bg-secondary/30 border border-border rounded-lg p-4 hover:bg-secondary/50 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Badge variant="outline" className={getSeverityColor(alert.severity)}>
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        {alert.severity}
-                      </Badge>
-                      <Badge variant="outline">{alert.type}</Badge>
-                      {alert.trend === "up" && (
-                        <TrendingUp className="h-4 w-4 text-success" />
-                      )}
-                      {alert.trend === "down" && (
-                        <TrendingDown className="h-4 w-4 text-destructive" />
-                      )}
+            {alerts.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <CheckCircle2 className="h-12 w-12 mx-auto mb-2 text-success" />
+                <p>No active alerts at this time</p>
+              </div>
+            ) : (
+              alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className="bg-secondary/30 border border-border rounded-lg p-4 hover:bg-secondary/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <Badge variant="outline" className={getSeverityColor(alert.severity)}>
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          {alert.severity}
+                        </Badge>
+                        <Badge variant="outline">{alert.type}</Badge>
+                        {alert.trend === "up" && (
+                          <TrendingUp className="h-4 w-4 text-success" />
+                        )}
+                        {alert.trend === "down" && (
+                          <TrendingDown className="h-4 w-4 text-destructive" />
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-foreground mb-1">{alert.vendor}</h4>
+                      <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
+                      <span className="text-xs text-muted-foreground">{alert.time}</span>
                     </div>
-                    <h4 className="font-semibold text-foreground mb-1">{alert.vendor}</h4>
-                    <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
-                    <span className="text-xs text-muted-foreground">{alert.time}</span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      Investigate
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      Dismiss
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => handleInvestigate(alert)}>
+                        Investigate
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDismiss(alert.id)}>
+                        Dismiss
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
 
@@ -175,26 +215,22 @@ const Monitoring = () => {
           <Card className="bg-card border-border p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">Alert Distribution</h3>
             <div className="space-y-3">
-              {["Critical", "High", "Medium", "Low"].map((severity) => (
+              {Object.entries(alertDistribution).map(([severity, count]) => (
                 <div key={severity}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm text-muted-foreground">{severity}</span>
-                    <span className="text-sm font-semibold text-foreground">
-                      {severity === "Critical" ? "5" : severity === "High" ? "12" : severity === "Medium" ? "18" : "8"}
-                    </span>
+                    <span className="text-sm font-semibold text-foreground">{count}</span>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-2">
                     <div
-                      className={`h-full rounded-full ${
+                      className={`h-full rounded-full transition-all ${
                         severity === "Critical" ? "bg-destructive" :
                         severity === "High" ? "bg-warning" :
                         severity === "Medium" ? "bg-accent" :
                         "bg-success"
                       }`}
                       style={{
-                        width: severity === "Critical" ? "12%" :
-                               severity === "High" ? "28%" :
-                               severity === "Medium" ? "42%" : "18%"
+                        width: totalAlerts > 0 ? `${(count / totalAlerts) * 100}%` : "0%"
                       }}
                     />
                   </div>
