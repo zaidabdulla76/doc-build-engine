@@ -6,7 +6,9 @@ import {
   FileSearch, 
   Activity, 
   BarChart3,
-  Brain
+  Brain,
+  FileText,
+  GitBranch
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +21,8 @@ export const Navigation = () => {
     { name: "Assessments", icon: FileSearch, path: "/assessments" },
     { name: "Monitoring", icon: Activity, path: "/monitoring" },
     { name: "Reports", icon: BarChart3, path: "/reports" },
+    { name: "Documents", icon: FileText, path: "/documents" },
+    { name: "Workflows", icon: GitBranch, path: "/workflows" },
   ];
 
   return (
