@@ -10,6 +10,7 @@ interface StatsCardProps {
   icon: LucideIcon;
   positive?: boolean;
   variant?: "default" | "warning";
+  onClick?: () => void;
 }
 
 export const StatsCard = ({ 
@@ -19,12 +20,19 @@ export const StatsCard = ({
   trend, 
   icon: Icon,
   positive = false,
-  variant = "default"
+  variant = "default",
+  onClick
 }: StatsCardProps) => {
   const isPositiveChange = positive ? trend === "down" : trend === "up";
   
   return (
-    <Card className="bg-card border-border p-6 hover:shadow-lg-custom transition-all duration-300">
+    <Card 
+      className={cn(
+        "bg-card border-border p-6 hover:shadow-lg-custom transition-all duration-300",
+        onClick && "cursor-pointer hover:border-primary/50"
+      )}
+      onClick={onClick}
+    >
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm text-muted-foreground font-medium">{title}</span>
         <div className={cn(

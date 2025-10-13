@@ -8,7 +8,8 @@ import {
   BarChart3,
   Brain,
   FileText,
-  GitBranch
+  GitBranch,
+  Settings as SettingsIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -62,8 +63,11 @@ export const Navigation = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              Settings
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/settings">
+                <SettingsIcon className="h-4 w-4 mr-2" />
+                Settings
+              </Link>
             </Button>
           </div>
         </div>

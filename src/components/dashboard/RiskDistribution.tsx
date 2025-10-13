@@ -1,13 +1,27 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { Filter } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export const RiskDistribution = () => {
+  const navigate = useNavigate();
+  
   const riskData = [
-    { level: "Critical", count: 23, percentage: 1.8, color: "bg-destructive" },
-    { level: "High", count: 87, percentage: 7.0, color: "bg-warning" },
-    { level: "Medium", count: 342, percentage: 27.4, color: "bg-accent" },
-    { level: "Low", count: 795, percentage: 63.8, color: "bg-success" },
+    { level: "Critical", count: 23, percentage: 1.8, color: "bg-destructive", textColor: "text-destructive" },
+    { level: "High", count: 87, percentage: 7.0, color: "bg-warning", textColor: "text-warning" },
+    { level: "Medium", count: 342, percentage: 27.4, color: "bg-accent", textColor: "text-accent" },
+    { level: "Low", count: 795, percentage: 63.8, color: "bg-success", textColor: "text-success" },
   ];
+
+  const handleFilterByRisk = (level: string) => {
+    toast({
+      title: "Filter Applied",
+      description: `Showing vendors with ${level} risk level`
+    });
+    navigate(`/vendors?risk=${level.toLowerCase()}`);
+  };
 
   return (
     <Card className="bg-card border-border p-6">
@@ -18,7 +32,7 @@ export const RiskDistribution = () => {
 
       <div className="space-y-6">
         {riskData.map((risk) => (
-          <div key={risk.level} className="space-y-2">
+          <div key={risk.level} className="space-y-2 group">
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center space-x-2">
                 <div className={`h-3 w-3 rounded-full ${risk.color}`} />
@@ -27,9 +41,20 @@ export const RiskDistribution = () => {
               <div className="flex items-center space-x-3">
                 <span className="text-muted-foreground">{risk.count} vendors</span>
                 <span className="font-semibold text-foreground w-12 text-right">{risk.percentage}%</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleFilterByRisk(risk.level)}
+                >
+                  <Filter className="h-3 w-3" />
+                </Button>
               </div>
             </div>
-            <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+            <div 
+              className="w-full bg-secondary rounded-full h-2 overflow-hidden cursor-pointer hover:h-3 transition-all"
+              onClick={() => handleFilterByRisk(risk.level)}
+            >
               <div
                 className={`h-full ${risk.color} transition-all duration-500`}
                 style={{ width: `${risk.percentage}%` }}

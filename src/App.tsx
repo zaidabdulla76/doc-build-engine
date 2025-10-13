@@ -10,6 +10,7 @@ import Monitoring from "./pages/Monitoring";
 import Reports from "./pages/Reports";
 import Documents from "./pages/Documents";
 import Workflows from "./pages/Workflows";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/reports" element={<Reports />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/workflows" element={<Workflows />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
