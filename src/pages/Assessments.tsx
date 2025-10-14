@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { Clock, AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -93,10 +93,12 @@ const Assessments = () => {
     });
   };
 
-  const handleViewDetails = (vendor: string) => {
+  const handleCancelAssessment = (assessmentId: number, vendor: string) => {
+    setAssessments(assessments.filter(a => a.id !== assessmentId));
     toast({
-      title: "Loading Details",
-      description: `Opening detailed view for ${vendor}...`
+      title: "Assessment Cancelled",
+      description: `Assessment for ${vendor} has been cancelled`,
+      variant: "destructive"
     });
   };
 
@@ -228,13 +230,22 @@ const Assessments = () => {
                   </div>
                   <p className="text-sm text-muted-foreground">{assessment.type}</p>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => window.location.href = `/assessments/${assessment.id}`}
-                >
-                  View Details
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => window.location.href = `/assessments/${assessment.id}`}
+                  >
+                    View Details
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleCancelAssessment(assessment.id, assessment.vendor)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">

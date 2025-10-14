@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Download, Plus, ArrowUpDown } from "lucide-react";
+import { Search, Filter, Download, Plus, ArrowUpDown, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -71,6 +71,8 @@ const Vendors = () => {
   });
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingVendor, setEditingVendor] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
 
   const handleAddVendor = () => {
@@ -100,6 +102,50 @@ const Vendors = () => {
     toast({
       title: "Vendor Added",
       description: `${vendor.name} has been added successfully`
+    });
+  };
+
+  const handleEditVendor = (vendor: any) => {
+    setEditingVendor(vendor);
+    setNewVendor({
+      name: vendor.name,
+      category: vendor.category,
+      status: vendor.status
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateVendor = () => {
+    if (!newVendor.name || !newVendor.category) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setVendors(vendors.map(v => 
+      v.id === editingVendor.id 
+        ? { ...v, name: newVendor.name, category: newVendor.category, status: newVendor.status }
+        : v
+    ));
+    
+    setIsEditDialogOpen(false);
+    setEditingVendor(null);
+    setNewVendor({ name: "", category: "", status: "Under Review" });
+    
+    toast({
+      title: "Vendor Updated",
+      description: `${newVendor.name} has been updated successfully`
+    });
+  };
+
+  const handleDeleteVendor = (vendorId: number, vendorName: string) => {
+    setVendors(vendors.filter(v => v.id !== vendorId));
+    toast({
+      title: "Vendor Deleted",
+      description: `${vendorName} has been removed from your portfolio`
     });
   };
 
@@ -228,6 +274,51 @@ const Vendors = () => {
                 </div>
               </DialogContent>
             </Dialog>
+
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Vendor</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <Label htmlFor="edit-vendor-name">Vendor Name *</Label>
+                    <Input
+                      id="edit-vendor-name"
+                      value={newVendor.name}
+                      onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })}
+                      placeholder="Enter vendor name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-category">Category *</Label>
+                    <Input
+                      id="edit-category"
+                      value={newVendor.category}
+                      onChange={(e) => setNewVendor({ ...newVendor, category: e.target.value })}
+                      placeholder="e.g., IT Services, Consulting"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-status">Status</Label>
+                    <Select value={newVendor.status} onValueChange={(value) => setNewVendor({ ...newVendor, status: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Under Review">Under Review</SelectItem>
+                        <SelectItem value="In Progress">In Progress</SelectItem>
+                        <SelectItem value="Approved">Approved</SelectItem>
+                        <SelectItem value="Monitoring">Monitoring</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={handleUpdateVendor} className="w-full">
+                    Update Vendor
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -337,13 +428,29 @@ const Vendors = () => {
                       <span className="text-sm text-muted-foreground">{vendor.lastAssessment}</span>
                     </td>
                     <td className="py-4 px-6">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => window.location.href = `/vendors/${vendor.id}`}
-                      >
-                        View Details
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => window.location.href = `/vendors/${vendor.id}`}
+                        >
+                          View
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEditVendor(vendor)}
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDeleteVendor(vendor.id, vendor.name)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

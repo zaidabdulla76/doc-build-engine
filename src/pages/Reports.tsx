@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Download, FileText, BarChart3, TrendingUp, Calendar, Loader2 } from "lucide-react";
+import { Download, FileText, BarChart3, TrendingUp, Calendar, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -122,6 +122,14 @@ const Reports = () => {
     toast({
       title: "Opening Report",
       description: `Loading ${reportTitle}...`
+    });
+  };
+
+  const handleDeleteReport = (reportId: number, reportTitle: string) => {
+    setReports(reports.filter(r => r.id !== reportId));
+    toast({
+      title: "Report Deleted",
+      description: `${reportTitle} has been removed`
     });
   };
 
@@ -297,6 +305,13 @@ const Reports = () => {
                             <Download className="h-4 w-4" />
                           </Button>
                         )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDeleteReport(report.id, report.title)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </td>
                   </tr>

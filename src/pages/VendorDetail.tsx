@@ -16,13 +16,32 @@ import {
   AlertTriangle,
   TrendingUp,
   Calendar,
-  CheckCircle2
+  CheckCircle2,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { toast } from "@/hooks/use-toast";
 
 const VendorDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const handleEdit = () => {
+    toast({
+      title: "Edit Mode",
+      description: "Opening vendor editor..."
+    });
+  };
+
+  const handleDelete = () => {
+    toast({
+      title: "Vendor Deleted",
+      description: `${vendor.name} has been removed`,
+      variant: "destructive"
+    });
+    setTimeout(() => navigate("/vendors"), 1000);
+  };
 
   // Simulated vendor data
   const vendor = {
@@ -146,10 +165,22 @@ const VendorDetail = () => {
             </div>
           </div>
           
-          <div className="text-right">
-            <div className="text-5xl font-bold text-foreground mb-1">{vendor.riskScore}</div>
-            <p className="text-sm text-muted-foreground">Risk Score</p>
-            <Progress value={vendor.riskScore} className="h-2 w-32 mt-2" />
+          <div className="flex items-start space-x-3">
+            <div className="text-right mr-6">
+              <div className="text-5xl font-bold text-foreground mb-1">{vendor.riskScore}</div>
+              <p className="text-sm text-muted-foreground">Risk Score</p>
+              <Progress value={vendor.riskScore} className="h-2 w-32 mt-2" />
+            </div>
+            <div className="flex flex-col space-y-2">
+              <Button variant="outline" size="sm" onClick={handleEdit}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDelete}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </div>
           </div>
         </div>
 

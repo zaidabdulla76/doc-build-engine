@@ -15,7 +15,9 @@ import {
   TrendingUp,
   Shield,
   DollarSign,
-  Scale
+  Scale,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -151,6 +153,22 @@ const AssessmentDetail = () => {
       variant: "destructive"
     });
     navigate("/workflows");
+  };
+
+  const handleEdit = () => {
+    toast({
+      title: "Edit Mode",
+      description: "Opening assessment editor..."
+    });
+  };
+
+  const handleDelete = () => {
+    toast({
+      title: "Assessment Deleted",
+      description: `Assessment for ${assessment.vendor} has been deleted`,
+      variant: "destructive"
+    });
+    setTimeout(() => navigate("/assessments"), 1000);
   };
 
   const getStatusColor = (status: string) => {
@@ -330,13 +348,25 @@ const AssessmentDetail = () => {
           </TabsContent>
         </Tabs>
 
-        <div className="flex items-center justify-end space-x-4 mt-8">
-          <Button variant="outline" onClick={handleReject}>
-            Reject Assessment
-          </Button>
-          <Button className="bg-gradient-primary" onClick={handleApprove}>
-            Approve Assessment
-          </Button>
+        <div className="flex items-center justify-between mt-8">
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" onClick={handleEdit}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Assessment
+            </Button>
+            <Button variant="outline" onClick={handleDelete}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Assessment
+            </Button>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" onClick={handleReject}>
+              Reject Assessment
+            </Button>
+            <Button className="bg-gradient-primary" onClick={handleApprove}>
+              Approve Assessment
+            </Button>
+          </div>
         </div>
       </main>
     </div>
