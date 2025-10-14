@@ -228,7 +228,11 @@ const Assessments = () => {
                   </div>
                   <p className="text-sm text-muted-foreground">{assessment.type}</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => handleViewDetails(assessment.vendor)}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => window.location.href = `/assessments/${assessment.id}`}
+                >
                   View Details
                 </Button>
               </div>

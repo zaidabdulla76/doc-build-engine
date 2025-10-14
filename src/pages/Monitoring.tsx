@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, TrendingDown, TrendingUp, Bell, CheckCircle2, Activity } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -203,13 +204,40 @@ const Monitoring = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="bg-card border-border p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">Risk Trends</h3>
-            <div className="h-64 flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <Activity className="h-12 w-12 mx-auto mb-2 text-primary" />
-                <p>Risk trend visualization</p>
-                <p className="text-sm">Chart will be rendered here</p>
-              </div>
-            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart data={[
+                { date: '10/01', score: 65 },
+                { date: '10/03', score: 68 },
+                { date: '10/05', score: 72 },
+                { date: '10/07', score: 75 },
+                { date: '10/09', score: 71 },
+                { date: '10/11', score: 69 }
+              ]}>
+                <defs>
+                  <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '0.5rem'
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="score" 
+                  stroke="hsl(var(--primary))" 
+                  fillOpacity={1} 
+                  fill="url(#colorScore)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </Card>
 
           <Card className="bg-card border-border p-6">

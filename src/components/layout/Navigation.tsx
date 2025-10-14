@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   LayoutDashboard, 
   Users, 
@@ -9,7 +10,8 @@ import {
   Brain,
   FileText,
   GitBranch,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -63,6 +65,14 @@ export const Navigation = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            <Button variant="ghost" size="icon" className="relative" asChild>
+              <Link to="/notifications">
+                <Bell className="h-5 w-5" />
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-destructive text-destructive-foreground text-xs">
+                  3
+                </Badge>
+              </Link>
+            </Button>
             <Button variant="outline" size="sm" asChild>
               <Link to="/settings">
                 <SettingsIcon className="h-4 w-4 mr-2" />

@@ -5,11 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Vendors from "./pages/Vendors";
+import VendorDetail from "./pages/VendorDetail";
 import Assessments from "./pages/Assessments";
+import AssessmentDetail from "./pages/AssessmentDetail";
 import Monitoring from "./pages/Monitoring";
 import Reports from "./pages/Reports";
 import Documents from "./pages/Documents";
 import Workflows from "./pages/Workflows";
+import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -24,11 +27,14 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/vendors" element={<Vendors />} />
+          <Route path="/vendors/:id" element={<VendorDetail />} />
           <Route path="/assessments" element={<Assessments />} />
+          <Route path="/assessments/:id" element={<AssessmentDetail />} />
           <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/workflows" element={<Workflows />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

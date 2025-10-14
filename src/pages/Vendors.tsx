@@ -340,10 +340,7 @@ const Vendors = () => {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => toast({
-                          title: "Viewing Details",
-                          description: `Loading details for ${vendor.name}...`
-                        })}
+                        onClick={() => window.location.href = `/vendors/${vendor.id}`}
                       >
                         View Details
                       </Button>
