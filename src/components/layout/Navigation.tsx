@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -11,12 +11,34 @@ import {
   FileText,
   GitBranch,
   Settings as SettingsIcon,
-  Bell
+  Bell,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const Navigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Logged out successfully",
+      });
+      navigate("/auth");
+    }
+  };
 
   const navItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/" },
@@ -78,6 +100,10 @@ export const Navigation = () => {
                 <SettingsIcon className="h-4 w-4 mr-2" />
                 Settings
               </Link>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
             </Button>
           </div>
         </div>
