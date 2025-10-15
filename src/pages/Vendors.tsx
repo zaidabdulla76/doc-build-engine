@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Download, Plus, ArrowUpDown, Edit, Trash2 } from "lucide-react";
+import { Search, Filter, Download, Plus, ArrowUpDown, Edit, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { agents } from "@/data/agents";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Vendors = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,7 +69,8 @@ const Vendors = () => {
   const [newVendor, setNewVendor] = useState({
     name: "",
     category: "",
-    status: "Under Review"
+    status: "Under Review",
+    assignedAgents: [] as string[]
   });
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -92,16 +95,22 @@ const Vendors = () => {
       riskScore: Math.floor(Math.random() * 100),
       riskLevel: "Medium",
       status: newVendor.status,
-      lastAssessment: new Date().toISOString().split('T')[0]
+      lastAssessment: new Date().toISOString().split('T')[0],
+      assignedAgents: newVendor.assignedAgents
     };
 
     setVendors([...vendors, vendor]);
-    setNewVendor({ name: "", category: "", status: "Under Review" });
+    setNewVendor({ name: "", category: "", status: "Under Review", assignedAgents: [] });
     setIsAddDialogOpen(false);
+    
+    const assignedAgentNames = agents
+      .filter(a => newVendor.assignedAgents.includes(a.id))
+      .map(a => a.name)
+      .join(", ");
     
     toast({
       title: "Vendor Added",
-      description: `${vendor.name} has been added successfully`
+      description: `${vendor.name} has been added${assignedAgentNames ? ` and assigned to: ${assignedAgentNames}` : ""}`
     });
   };
 
@@ -110,7 +119,8 @@ const Vendors = () => {
     setNewVendor({
       name: vendor.name,
       category: vendor.category,
-      status: vendor.status
+      status: vendor.status,
+      assignedAgents: vendor.assignedAgents || []
     });
     setIsEditDialogOpen(true);
   };
@@ -127,17 +137,22 @@ const Vendors = () => {
 
     setVendors(vendors.map(v => 
       v.id === editingVendor.id 
-        ? { ...v, name: newVendor.name, category: newVendor.category, status: newVendor.status }
+        ? { ...v, name: newVendor.name, category: newVendor.category, status: newVendor.status, assignedAgents: newVendor.assignedAgents }
         : v
     ));
     
     setIsEditDialogOpen(false);
     setEditingVendor(null);
-    setNewVendor({ name: "", category: "", status: "Under Review" });
+    setNewVendor({ name: "", category: "", status: "Under Review", assignedAgents: [] });
+    
+    const assignedAgentNames = agents
+      .filter(a => newVendor.assignedAgents.includes(a.id))
+      .map(a => a.name)
+      .join(", ");
     
     toast({
       title: "Vendor Updated",
-      description: `${newVendor.name} has been updated successfully`
+      description: `${newVendor.name} has been updated${assignedAgentNames ? ` with agents: ${assignedAgentNames}` : ""}`
     });
   };
 
@@ -268,6 +283,47 @@ const Vendors = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  <div className="space-y-3">
+                    <Label className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Assign AI Agents
+                    </Label>
+                    <div className="border border-border rounded-lg p-4 space-y-3 max-h-[200px] overflow-y-auto bg-secondary/20">
+                      {agents.map((agent) => (
+                        <div key={agent.id} className="flex items-start space-x-3">
+                          <Checkbox
+                            id={`add-${agent.id}`}
+                            checked={newVendor.assignedAgents.includes(agent.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setNewVendor({
+                                  ...newVendor,
+                                  assignedAgents: [...newVendor.assignedAgents, agent.id]
+                                });
+                              } else {
+                                setNewVendor({
+                                  ...newVendor,
+                                  assignedAgents: newVendor.assignedAgents.filter(id => id !== agent.id)
+                                });
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={`add-${agent.id}`}
+                            className="flex-1 cursor-pointer"
+                          >
+                            <div className="font-medium text-sm text-foreground">{agent.name}</div>
+                            <div className="text-xs text-muted-foreground">{agent.specialty}</div>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Select which AI agents will monitor this vendor
+                    </p>
+                  </div>
+                  
                   <Button onClick={handleAddVendor} className="w-full">
                     Add Vendor
                   </Button>
@@ -313,6 +369,47 @@ const Vendors = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  <div className="space-y-3">
+                    <Label className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Assign AI Agents
+                    </Label>
+                    <div className="border border-border rounded-lg p-4 space-y-3 max-h-[200px] overflow-y-auto bg-secondary/20">
+                      {agents.map((agent) => (
+                        <div key={agent.id} className="flex items-start space-x-3">
+                          <Checkbox
+                            id={`edit-${agent.id}`}
+                            checked={newVendor.assignedAgents.includes(agent.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setNewVendor({
+                                  ...newVendor,
+                                  assignedAgents: [...newVendor.assignedAgents, agent.id]
+                                });
+                              } else {
+                                setNewVendor({
+                                  ...newVendor,
+                                  assignedAgents: newVendor.assignedAgents.filter(id => id !== agent.id)
+                                });
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={`edit-${agent.id}`}
+                            className="flex-1 cursor-pointer"
+                          >
+                            <div className="font-medium text-sm text-foreground">{agent.name}</div>
+                            <div className="text-xs text-muted-foreground">{agent.specialty}</div>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Select which AI agents will monitor this vendor
+                    </p>
+                  </div>
+                  
                   <Button onClick={handleUpdateVendor} className="w-full">
                     Update Vendor
                   </Button>

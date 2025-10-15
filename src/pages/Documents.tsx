@@ -6,9 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText, Image, FileSpreadsheet, FileCheck, AlertCircle, Loader2, Eye, Trash2 } from "lucide-react";
+import { Upload, FileText, Image, FileSpreadsheet, FileCheck, AlertCircle, Loader2, Eye, Trash2, Languages } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { languages } from "@/data/languages";
 
 const Documents = () => {
   const [documents, setDocuments] = useState<Array<{
@@ -68,6 +70,7 @@ const Documents = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedVendor, setSelectedVendor] = useState("");
   const [selectedDocType, setSelectedDocType] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
 
   const vendors = ["TechCorp Solutions", "DataFlow Systems", "Global Logistics Ltd", "SecureCloud Inc"];
   const docTypes = ["Financial", "Legal", "Compliance", "References", "Contract", "Other"];
@@ -79,14 +82,21 @@ const Documents = () => {
   };
 
   const handleUpload = () => {
-    if (!selectedFile || !selectedVendor || !selectedDocType) {
+    if (!selectedFile || !selectedVendor || !selectedDocType || !selectedLanguage) {
       toast({
         title: "Missing Information",
-        description: "Please select a file, vendor, and document type",
+        description: "Please select a file, vendor, document type, and language",
         variant: "destructive"
       });
       return;
     }
+
+    const selectedLang = languages.find(lang => lang.code === selectedLanguage);
+    
+    toast({
+      title: "Language Selected",
+      description: `Document will be analyzed in ${selectedLang?.name} (${selectedLang?.nativeName})`
+    });
 
     setUploading(true);
 
@@ -108,6 +118,7 @@ const Documents = () => {
       setSelectedFile(null);
       setSelectedVendor("");
       setSelectedDocType("");
+      setSelectedLanguage("en");
 
       toast({
         title: "Document Uploaded",
@@ -216,6 +227,21 @@ const Documents = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="language" className="flex items-center gap-2">
+                    <Languages className="h-4 w-4" />
+                    Document Language *
+                  </Label>
+                  <LanguageSelector
+                    value={selectedLanguage}
+                    onChange={setSelectedLanguage}
+                    placeholder="Select document language..."
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Select the language of your document for accurate AI analysis
+                  </p>
                 </div>
 
                 <div>
