@@ -14,7 +14,218 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      assessments: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          score: number | null
+          status: Database["public"]["Enums"]["assessment_status"]
+          summary: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          vendor_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          score?: number | null
+          status?: Database["public"]["Enums"]["assessment_status"]
+          summary?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          vendor_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          score?: number | null
+          status?: Database["public"]["Enums"]["assessment_status"]
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          created_at: string
+          id: string
+          mime_type: string | null
+          name: string
+          status: Database["public"]["Enums"]["doc_status"]
+          storage_path: string
+          type: string | null
+          user_id: string
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mime_type?: string | null
+          name: string
+          status?: Database["public"]["Enums"]["doc_status"]
+          storage_path: string
+          type?: string | null
+          user_id: string
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mime_type?: string | null
+          name?: string
+          status?: Database["public"]["Enums"]["doc_status"]
+          storage_path?: string
+          type?: string | null
+          user_id?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["report_status"]
+          storage_path: string | null
+          template: string | null
+          updated_at: string
+          user_id: string
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["report_status"]
+          storage_path?: string | null
+          template?: string | null
+          updated_at?: string
+          user_id: string
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["report_status"]
+          storage_path?: string | null
+          template?: string | null
+          updated_at?: string
+          user_id?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_agents: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          vendor_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          vendor_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_agents_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendors: {
+        Row: {
+          address: string | null
+          category: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          risk_level: Database["public"]["Enums"]["risk_level"]
+          risk_score: number
+          status: Database["public"]["Enums"]["vendor_status"]
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          category?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"]
+          risk_score?: number
+          status?: Database["public"]["Enums"]["vendor_status"]
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"]
+          risk_score?: number
+          status?: Database["public"]["Enums"]["vendor_status"]
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +234,11 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      assessment_status: "pending" | "in_progress" | "completed" | "failed"
+      doc_status: "pending" | "processing" | "processed" | "failed"
+      report_status: "pending" | "processing" | "ready" | "failed"
+      risk_level: "low" | "medium" | "high" | "critical"
+      vendor_status: "active" | "inactive" | "onboarding" | "suspended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +365,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      assessment_status: ["pending", "in_progress", "completed", "failed"],
+      doc_status: ["pending", "processing", "processed", "failed"],
+      report_status: ["pending", "processing", "ready", "failed"],
+      risk_level: ["low", "medium", "high", "critical"],
+      vendor_status: ["active", "inactive", "onboarding", "suspended"],
+    },
   },
 } as const
