@@ -10,96 +10,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Clock, AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useAssessments } from "@/hooks/useAssessments";
+import { useVendors } from "@/hooks/useVendors";
 
 const Assessments = () => {
-  const [assessments, setAssessments] = useState([
-    {
-      id: 1,
-      vendor: "TechCorp Solutions",
-      type: "Enhanced Due Diligence",
-      status: "In Progress",
-      progress: 65,
-      assignedAgent: "Risk Assessment Agent",
-      eta: "2 hours",
-      priority: "High"
-    },
-    {
-      id: 2,
-      vendor: "DataFlow Systems",
-      type: "Standard Assessment",
-      status: "Data Collection",
-      progress: 35,
-      assignedAgent: "Data Collection Agent",
-      eta: "4 hours",
-      priority: "Medium"
-    },
-    {
-      id: 3,
-      vendor: "Global Logistics Ltd",
-      type: "Enhanced Due Diligence",
-      status: "Pending Review",
-      progress: 90,
-      assignedAgent: "Investigation Agent",
-      eta: "30 minutes",
-      priority: "High"
-    },
-    {
-      id: 4,
-      vendor: "SecureCloud Inc",
-      type: "Quick Assessment",
-      status: "In Progress",
-      progress: 50,
-      assignedAgent: "Risk Assessment Agent",
-      eta: "1 hour",
-      priority: "Low"
-    }
-  ]);
+  const { assessments, isLoading, addAssessment, deleteAssessment } = useAssessments();
+  const { vendors } = useVendors();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newAssessment, setNewAssessment] = useState({
-    vendor: "",
-    type: "Standard Assessment",
-    priority: "Medium"
+    vendor_id: "",
+    title: "Standard Assessment"
   });
 
   const handleNewAssessment = () => {
-    if (!newAssessment.vendor) {
+    if (!newAssessment.vendor_id || !newAssessment.title) {
       toast({
         title: "Missing Information",
-        description: "Please enter a vendor name",
+        description: "Please select a vendor and assessment type",
         variant: "destructive"
       });
       return;
     }
 
-    const assessment = {
-      id: assessments.length + 1,
-      vendor: newAssessment.vendor,
-      type: newAssessment.type,
-      status: "In Progress",
-      progress: 5,
-      assignedAgent: "Risk Assessment Agent",
-      eta: "3 hours",
-      priority: newAssessment.priority
-    };
-
-    setAssessments([assessment, ...assessments]);
-    setNewAssessment({ vendor: "", type: "Standard Assessment", priority: "Medium" });
+    addAssessment(newAssessment);
+    setNewAssessment({ vendor_id: "", title: "Standard Assessment" });
     setIsAddDialogOpen(false);
-
-    toast({
-      title: "Assessment Started",
-      description: `Due diligence assessment for ${assessment.vendor} has been initiated`
-    });
   };
 
-  const handleCancelAssessment = (assessmentId: number, vendor: string) => {
-    setAssessments(assessments.filter(a => a.id !== assessmentId));
-    toast({
-      title: "Assessment Cancelled",
-      description: `Assessment for ${vendor} has been cancelled`,
-      variant: "destructive"
-    });
+  const handleCancelAssessment = (assessmentId: string, vendorName: string) => {
+    deleteAssessment(assessmentId);
   };
 
   const getStatusIcon = (status: string) => {
@@ -120,8 +60,22 @@ const Assessments = () => {
     }
   };
 
-  const activeCount = assessments.filter(a => a.status === "In Progress" || a.status === "Data Collection").length;
-  const pendingCount = assessments.filter(a => a.status === "Pending Review").length;
+  const activeCount = assessments.filter(a => a.status === "in_progress").length;
+  const pendingCount = assessments.filter(a => a.status === "pending").length;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-6 py-8 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading assessments...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,17 +100,23 @@ const Assessments = () => {
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div>
-                  <Label htmlFor="vendor">Vendor Name *</Label>
-                  <Input
-                    id="vendor"
-                    value={newAssessment.vendor}
-                    onChange={(e) => setNewAssessment({ ...newAssessment, vendor: e.target.value })}
-                    placeholder="Enter vendor name"
-                  />
+                  <Label htmlFor="vendor">Select Vendor *</Label>
+                  <Select value={newAssessment.vendor_id} onValueChange={(value) => setNewAssessment({ ...newAssessment, vendor_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select vendor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vendors.map((vendor) => (
+                        <SelectItem key={vendor.id} value={vendor.id}>
+                          {vendor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <Label htmlFor="type">Assessment Type</Label>
-                  <Select value={newAssessment.type} onValueChange={(value) => setNewAssessment({ ...newAssessment, type: value })}>
+                  <Label htmlFor="type">Assessment Type *</Label>
+                  <Select value={newAssessment.title} onValueChange={(value) => setNewAssessment({ ...newAssessment, title: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -164,19 +124,7 @@ const Assessments = () => {
                       <SelectItem value="Quick Assessment">Quick Assessment</SelectItem>
                       <SelectItem value="Standard Assessment">Standard Assessment</SelectItem>
                       <SelectItem value="Enhanced Due Diligence">Enhanced Due Diligence</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="priority">Priority Level</Label>
-                  <Select value={newAssessment.priority} onValueChange={(value) => setNewAssessment({ ...newAssessment, priority: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Low">Low</SelectItem>
-                      <SelectItem value="Medium">Medium</SelectItem>
-                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Compliance Review">Compliance Review</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -218,63 +166,82 @@ const Assessments = () => {
         </div>
 
         <div className="space-y-4">
-          {assessments.map((assessment) => (
-            <Card key={assessment.id} className="bg-card border-border p-6 hover:shadow-lg-custom transition-all">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-xl font-semibold text-foreground">{assessment.vendor}</h3>
-                    <Badge variant="outline" className={getPriorityColor(assessment.priority)}>
-                      {assessment.priority} Priority
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{assessment.type}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => window.location.href = `/assessments/${assessment.id}`}
-                  >
-                    View Details
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleCancelAssessment(assessment.id, assessment.vendor)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Status</div>
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(assessment.status)}
-                    <span className="font-medium text-foreground">{assessment.status}</span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Assigned Agent</div>
-                  <div className="font-medium text-foreground">{assessment.assignedAgent}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground mb-1">Est. Completion</div>
-                  <div className="font-medium text-foreground">{assessment.eta}</div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-muted-foreground">Progress</span>
-                  <span className="text-sm font-semibold text-foreground">{assessment.progress}%</span>
-                </div>
-                <Progress value={assessment.progress} className="h-2" />
+          {assessments.length === 0 ? (
+            <Card className="bg-card border-border p-12">
+              <div className="text-center text-muted-foreground">
+                <p>No assessments found. Start a new assessment to get started.</p>
               </div>
             </Card>
-          ))}
+          ) : (
+            assessments.map((assessment: any) => (
+              <Card key={assessment.id} className="bg-card border-border p-6 hover:shadow-lg-custom transition-all">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-xl font-semibold text-foreground">
+                        {assessment.vendors?.name || "Unknown Vendor"}
+                      </h3>
+                      <Badge variant="outline" className={
+                        assessment.status === "completed" ? "bg-success/10 text-success border-success/20" :
+                        assessment.status === "in_progress" ? "bg-accent/10 text-accent border-accent/20" :
+                        assessment.status === "failed" ? "bg-destructive/10 text-destructive border-destructive/20" :
+                        "bg-secondary/10 text-secondary border-secondary/20"
+                      }>
+                        {assessment.status.charAt(0).toUpperCase() + assessment.status.slice(1).replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{assessment.title}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => window.location.href = `/assessments/${assessment.id}`}
+                    >
+                      View Details
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleCancelAssessment(assessment.id, assessment.vendors?.name)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Status</div>
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(assessment.status === "in_progress" ? "In Progress" : "Pending Review")}
+                      <span className="font-medium text-foreground">
+                        {assessment.status.charAt(0).toUpperCase() + assessment.status.slice(1).replace('_', ' ')}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Created</div>
+                    <div className="font-medium text-foreground">{new Date(assessment.created_at).toLocaleDateString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Score</div>
+                    <div className="font-medium text-foreground">{assessment.score || "Pending"}</div>
+                  </div>
+                </div>
+
+                {assessment.score && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">Score</span>
+                      <span className="text-sm font-semibold text-foreground">{assessment.score}/100</span>
+                    </div>
+                    <Progress value={assessment.score} className="h-2" />
+                  </div>
+                )}
+              </Card>
+            ))
+          )}
         </div>
       </main>
     </div>

@@ -28,38 +28,26 @@ import { AIAgentsPanel } from "@/components/dashboard/AIAgentsPanel";
 import { Navigation } from "@/components/layout/Navigation";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useVendors } from "@/hooks/useVendors";
+import { useAssessments } from "@/hooks/useAssessments";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { vendors } = useVendors();
+  const { assessments, addAssessment } = useAssessments();
   const [isNewAssessmentOpen, setIsNewAssessmentOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [vendorName, setVendorName] = useState("");
+  const [selectedVendor, setSelectedVendor] = useState("");
   const [assessmentType, setAssessmentType] = useState("");
-  const [priority, setPriority] = useState("");
-  
-  // Simulated stats that update
-  const [stats, setStats] = useState({
-    activeVendors: 1247,
-    riskScore: 68,
-    activeAlerts: 23,
-    processingTime: 4.2
-  });
 
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStats(prev => ({
-        activeVendors: prev.activeVendors + Math.floor(Math.random() * 3) - 1,
-        riskScore: Math.max(50, Math.min(85, prev.riskScore + (Math.random() * 2 - 1))),
-        activeAlerts: Math.max(0, prev.activeAlerts + Math.floor(Math.random() * 3) - 1),
-        processingTime: Math.max(2, prev.processingTime + (Math.random() * 0.4 - 0.2))
-      }));
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  const activeVendors = vendors.filter(v => v.status === "active").length;
+  const avgRiskScore = vendors.length > 0 
+    ? Math.round(vendors.reduce((sum, v) => sum + v.risk_score, 0) / vendors.length)
+    : 0;
+  const activeAssessments = assessments.filter(a => a.status === "in_progress").length;
 
   const handleCreateAssessment = () => {
-    if (!vendorName || !assessmentType || !priority) {
+    if (!selectedVendor || !assessmentType) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
@@ -68,15 +56,14 @@ const Index = () => {
       return;
     }
 
-    toast({
-      title: "Assessment Created",
-      description: `New ${assessmentType} assessment for ${vendorName} has been initiated`
+    addAssessment({
+      vendor_id: selectedVendor,
+      title: assessmentType
     });
     
     setIsNewAssessmentOpen(false);
-    setVendorName("");
+    setSelectedVendor("");
     setAssessmentType("");
-    setPriority("");
     
     setTimeout(() => navigate("/assessments"), 500);
   };
@@ -134,13 +121,19 @@ const Index = () => {
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div>
-                    <Label htmlFor="vendor-name">Vendor Name *</Label>
-                    <Input
-                      id="vendor-name"
-                      placeholder="Enter vendor name"
-                      value={vendorName}
-                      onChange={(e) => setVendorName(e.target.value)}
-                    />
+                    <Label htmlFor="vendor-name">Select Vendor *</Label>
+                    <Select value={selectedVendor} onValueChange={setSelectedVendor}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select vendor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {vendors.map((vendor) => (
+                          <SelectItem key={vendor.id} value={vendor.id}>
+                            {vendor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="assessment-type">Assessment Type *</Label>
@@ -149,25 +142,11 @@ const Index = () => {
                         <SelectValue placeholder="Select assessment type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="full">Full Due Diligence</SelectItem>
-                        <SelectItem value="financial">Financial Assessment</SelectItem>
-                        <SelectItem value="compliance">Compliance Review</SelectItem>
-                        <SelectItem value="security">Security Audit</SelectItem>
-                        <SelectItem value="quick">Quick Assessment</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="priority">Priority *</Label>
-                    <Select value={priority} onValueChange={setPriority}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="critical">Critical</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="Full Due Diligence">Full Due Diligence</SelectItem>
+                        <SelectItem value="Financial Assessment">Financial Assessment</SelectItem>
+                        <SelectItem value="Compliance Review">Compliance Review</SelectItem>
+                        <SelectItem value="Security Audit">Security Audit</SelectItem>
+                        <SelectItem value="Quick Assessment">Quick Assessment</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -184,7 +163,7 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Active Vendors"
-            value={stats.activeVendors.toLocaleString()}
+            value={activeVendors.toLocaleString()}
             change="+12%"
             trend="up"
             icon={Users}
@@ -192,7 +171,7 @@ const Index = () => {
           />
           <StatsCard
             title="Risk Score Avg"
-            value={`${stats.riskScore.toFixed(0)}/100`}
+            value={`${avgRiskScore}/100`}
             change="-8%"
             trend="down"
             icon={Shield}
@@ -200,21 +179,22 @@ const Index = () => {
             onClick={() => navigate("/assessments")}
           />
           <StatsCard
-            title="Active Alerts"
-            value={stats.activeAlerts.toString()}
+            title="Active Assessments"
+            value={activeAssessments.toString()}
             change="+3"
             trend="up"
             icon={AlertTriangle}
             variant="warning"
-            onClick={() => navigate("/monitoring")}
+            onClick={() => navigate("/assessments")}
           />
           <StatsCard
-            title="Processing Time"
-            value={`${stats.processingTime.toFixed(1)} hrs`}
+            title="Total Vendors"
+            value={vendors.length.toString()}
             change="-86%"
             trend="down"
             icon={Clock}
             positive
+            onClick={() => navigate("/vendors")}
           />
         </div>
 

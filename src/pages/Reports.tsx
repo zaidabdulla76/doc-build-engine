@@ -9,47 +9,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Download, FileText, BarChart3, TrendingUp, Calendar, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useReports } from "@/hooks/useReports";
+import { useVendors } from "@/hooks/useVendors";
 
 const Reports = () => {
-  const [reports, setReports] = useState([
-    {
-      id: 1,
-      title: "Q4 2024 Portfolio Risk Summary",
-      type: "Executive Summary",
-      date: "2024-10-11",
-      status: "Ready",
-      pages: 24
-    },
-    {
-      id: 2,
-      title: "Vendor Risk Assessment - TechCorp",
-      type: "Individual Assessment",
-      date: "2024-10-10",
-      status: "Ready",
-      pages: 42
-    },
-    {
-      id: 3,
-      title: "Compliance Audit Report October 2024",
-      type: "Compliance",
-      date: "2024-10-09",
-      status: "In Progress",
-      pages: 18
-    },
-    {
-      id: 4,
-      title: "Risk Trend Analysis - Last 6 Months",
-      type: "Analytics",
-      date: "2024-10-08",
-      status: "Ready",
-      pages: 31
-    }
-  ]);
+  const { reports, isLoading, generateReport, deleteReport } = useReports();
+  const { vendors } = useVendors();
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("");
-  const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
+  const [selectedVendor, setSelectedVendor] = useState<string>("");
 
   const reportTemplates = [
     {
@@ -74,8 +44,6 @@ const Reports = () => {
     }
   ];
 
-  const vendors = ["TechCorp Solutions", "DataFlow Systems", "Global Logistics Ltd", "SecureCloud Inc"];
-
   const handleGenerateReport = () => {
     if (!selectedTemplate) {
       toast({
@@ -88,27 +56,18 @@ const Reports = () => {
 
     setIsGenerating(true);
     
-    setTimeout(() => {
-      const newReport = {
-        id: reports.length + 1,
-        title: `${reportTemplates.find(t => t.name === selectedTemplate)?.name} - ${new Date().toLocaleDateString()}`,
-        type: selectedTemplate,
-        date: new Date().toISOString().split('T')[0],
-        status: "Ready",
-        pages: Math.floor(Math.random() * 30) + 15
-      };
-      
-      setReports([newReport, ...reports]);
-      setIsGenerating(false);
-      setIsGenerateDialogOpen(false);
-      setSelectedTemplate("");
-      setSelectedVendors([]);
-      
-      toast({
-        title: "Report Generated",
-        description: `${newReport.title} is ready for download`
-      });
-    }, 3000);
+    const reportName = `${reportTemplates.find(t => t.name === selectedTemplate)?.name} - ${new Date().toLocaleDateString()}`;
+    
+    generateReport({
+      name: reportName,
+      template: selectedTemplate,
+      vendor_id: selectedVendor || undefined
+    });
+
+    setIsGenerating(false);
+    setIsGenerateDialogOpen(false);
+    setSelectedTemplate("");
+    setSelectedVendor("");
   };
 
   const handleDownloadReport = (reportTitle: string) => {
@@ -125,21 +84,31 @@ const Reports = () => {
     });
   };
 
-  const handleDeleteReport = (reportId: number, reportTitle: string) => {
-    setReports(reports.filter(r => r.id !== reportId));
-    toast({
-      title: "Report Deleted",
-      description: `${reportTitle} has been removed`
-    });
+  const handleDeleteReport = (reportId: string, reportTitle: string) => {
+    deleteReport(reportId);
   };
 
   const handleDownloadAll = () => {
-    const readyReports = reports.filter(r => r.status === "Ready");
+    const readyReports = reports.filter((r: any) => r.status === "ready");
     toast({
       title: "Downloading All Reports",
       description: `Preparing ${readyReports.length} reports for download...`
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-6 py-8 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading reports...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -179,27 +148,20 @@ const Reports = () => {
                 </div>
                 
                 <div>
-                  <Label>Include Vendors (optional)</Label>
-                  <div className="space-y-2 mt-2 max-h-40 overflow-y-auto">
-                    {vendors.map((vendor) => (
-                      <div key={vendor} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={vendor}
-                          checked={selectedVendors.includes(vendor)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedVendors([...selectedVendors, vendor]);
-                            } else {
-                              setSelectedVendors(selectedVendors.filter(v => v !== vendor));
-                            }
-                          }}
-                        />
-                        <label htmlFor={vendor} className="text-sm text-foreground cursor-pointer">
-                          {vendor}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+                  <Label>Include Vendor (optional)</Label>
+                  <Select value={selectedVendor} onValueChange={setSelectedVendor}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select vendor (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {vendors.map((vendor) => (
+                        <SelectItem key={vendor.id} value={vendor.id}>
+                          {vendor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <Button 
@@ -261,61 +223,73 @@ const Reports = () => {
                 </tr>
               </thead>
               <tbody>
-                {reports.map((report) => (
-                  <tr key={report.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="font-medium text-foreground">{report.title}</div>
+                {reports.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-muted-foreground">
+                      No reports found. Generate a new report to get started.
                     </td>
-                    <td className="py-4 px-6">
-                      <Badge variant="outline">{report.type}</Badge>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-sm text-muted-foreground">{report.date}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="text-sm text-muted-foreground">{report.pages} pages</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <Badge
-                        variant="outline"
-                        className={
-                          report.status === "Ready"
-                            ? "bg-success/10 text-success border-success/20"
-                            : "bg-accent/10 text-accent border-accent/20"
-                        }
-                      >
-                        {report.status}
-                      </Badge>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleViewReport(report.title)}
+                  </tr>
+                ) : (
+                  reports.map((report: any) => (
+                    <tr key={report.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
+                      <td className="py-4 px-6">
+                        <div className="font-medium text-foreground">{report.name}</div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <Badge variant="outline">{report.template || "N/A"}</Badge>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="text-sm text-muted-foreground">{new Date(report.created_at).toLocaleDateString()}</span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="text-sm text-muted-foreground">{report.vendors?.name || "All Vendors"}</span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <Badge
+                          variant="outline"
+                          className={
+                            report.status === "ready"
+                              ? "bg-success/10 text-success border-success/20"
+                              : report.status === "processing"
+                              ? "bg-accent/10 text-accent border-accent/20"
+                              : report.status === "failed"
+                              ? "bg-destructive/10 text-destructive border-destructive/20"
+                              : "bg-secondary/10 text-secondary border-secondary/20"
+                          }
                         >
-                          View
-                        </Button>
-                        {report.status === "Ready" && (
+                          {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                        </Badge>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center space-x-2">
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => handleDownloadReport(report.title)}
+                            onClick={() => handleViewReport(report.name)}
                           >
-                            <Download className="h-4 w-4" />
+                            View
                           </Button>
-                        )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDeleteReport(report.id, report.title)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {report.status === "ready" && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDownloadReport(report.name)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteReport(report.id, report.name)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
