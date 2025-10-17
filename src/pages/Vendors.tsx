@@ -11,6 +11,7 @@ import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { agents } from "@/data/agents";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useVendors } from "@/hooks/useVendors";
 
 const Vendors = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,58 +19,12 @@ const Vendors = () => {
   const [filterRisk, setFilterRisk] = useState("all");
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [vendors, setVendors] = useState([
-    {
-      id: 1,
-      name: "TechCorp Solutions",
-      category: "IT Services",
-      riskScore: 85,
-      riskLevel: "Critical",
-      status: "Under Review",
-      lastAssessment: "2024-10-08"
-    },
-    {
-      id: 2,
-      name: "Global Services Inc",
-      category: "Consulting",
-      riskScore: 42,
-      riskLevel: "Low",
-      status: "Approved",
-      lastAssessment: "2024-10-10"
-    },
-    {
-      id: 3,
-      name: "DataFlow Systems",
-      category: "Cloud Services",
-      riskScore: 58,
-      riskLevel: "Medium",
-      status: "In Progress",
-      lastAssessment: "2024-10-09"
-    },
-    {
-      id: 4,
-      name: "SecureNet Ltd",
-      category: "Cybersecurity",
-      riskScore: 28,
-      riskLevel: "Low",
-      status: "Approved",
-      lastAssessment: "2024-10-11"
-    },
-    {
-      id: 5,
-      name: "CloudBase Technologies",
-      category: "Infrastructure",
-      riskScore: 72,
-      riskLevel: "High",
-      status: "Monitoring",
-      lastAssessment: "2024-10-07"
-    }
-  ]);
+  const { vendors, isLoading, addVendor, updateVendor, deleteVendor } = useVendors();
 
   const [newVendor, setNewVendor] = useState({
     name: "",
     category: "",
-    status: "Under Review",
+    status: "onboarding",
     assignedAgents: [] as string[]
   });
 
@@ -88,29 +43,26 @@ const Vendors = () => {
       return;
     }
 
-    const vendor = {
-      id: vendors.length + 1,
+    addVendor({
       name: newVendor.name,
       category: newVendor.category,
-      riskScore: Math.floor(Math.random() * 100),
-      riskLevel: "Medium",
-      status: newVendor.status,
-      lastAssessment: new Date().toISOString().split('T')[0],
-      assignedAgents: newVendor.assignedAgents
-    };
+      status: newVendor.status as any,
+      risk_level: "low",
+      risk_score: Math.floor(Math.random() * 100),
+      assignedAgents: newVendor.assignedAgents,
+    });
 
-    setVendors([...vendors, vendor]);
-    setNewVendor({ name: "", category: "", status: "Under Review", assignedAgents: [] });
+    setNewVendor({ name: "", category: "", status: "onboarding", assignedAgents: [] });
     setIsAddDialogOpen(false);
-    
+
     const assignedAgentNames = agents
       .filter(a => newVendor.assignedAgents.includes(a.id))
       .map(a => a.name)
       .join(", ");
-    
+
     toast({
       title: "Vendor Added",
-      description: `${vendor.name} has been added${assignedAgentNames ? ` and assigned to: ${assignedAgentNames}` : ""}`
+      description: `${newVendor.name} has been added${assignedAgentNames ? ` and assigned to: ${assignedAgentNames}` : ""}`
     });
   };
 
@@ -126,6 +78,7 @@ const Vendors = () => {
   };
 
   const handleUpdateVendor = () => {
+    if (!editingVendor) return;
     if (!newVendor.name || !newVendor.category) {
       toast({
         title: "Missing Information",
@@ -135,29 +88,33 @@ const Vendors = () => {
       return;
     }
 
-    setVendors(vendors.map(v => 
-      v.id === editingVendor.id 
-        ? { ...v, name: newVendor.name, category: newVendor.category, status: newVendor.status, assignedAgents: newVendor.assignedAgents }
-        : v
-    ));
-    
+    updateVendor({
+      id: String(editingVendor.id),
+      updates: {
+        name: newVendor.name,
+        category: newVendor.category,
+        status: newVendor.status as any,
+      },
+      assignedAgents: newVendor.assignedAgents,
+    });
+
     setIsEditDialogOpen(false);
     setEditingVendor(null);
-    setNewVendor({ name: "", category: "", status: "Under Review", assignedAgents: [] });
-    
+    setNewVendor({ name: "", category: "", status: "onboarding", assignedAgents: [] });
+
     const assignedAgentNames = agents
       .filter(a => newVendor.assignedAgents.includes(a.id))
       .map(a => a.name)
       .join(", ");
-    
+
     toast({
       title: "Vendor Updated",
       description: `${newVendor.name} has been updated${assignedAgentNames ? ` with agents: ${assignedAgentNames}` : ""}`
     });
   };
 
-  const handleDeleteVendor = (vendorId: number, vendorName: string) => {
-    setVendors(vendors.filter(v => v.id !== vendorId));
+  const handleDeleteVendor = (vendorId: string, vendorName: string) => {
+    deleteVendor(String(vendorId));
     toast({
       title: "Vendor Deleted",
       description: `${vendorName} has been removed from your portfolio`
@@ -180,27 +137,36 @@ const Vendors = () => {
     }
   };
 
-  let filteredVendors = vendors.filter((vendor) => {
-    const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         vendor.category.toLowerCase().includes(searchTerm.toLowerCase());
+  const riskLabel = (lvl?: string) => {
+    switch (lvl) {
+      case "critical": return "Critical";
+      case "high": return "High";
+      case "medium": return "Medium";
+      case "low": return "Low";
+      default: return "Low";
+    }
+  };
+
+  let filteredVendors = (vendors || []).filter((vendor: any) => {
+    const name = (vendor.name || "").toLowerCase();
+    const category = (vendor.category || "").toLowerCase();
+    const matchesSearch = name.includes(searchTerm.toLowerCase()) || category.includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || vendor.status === filterStatus;
-    const matchesRisk = filterRisk === "all" || vendor.riskLevel === filterRisk;
-    
+    const matchesRisk = filterRisk === "all" || riskLabel(vendor.risk_level) === filterRisk;
     return matchesSearch && matchesStatus && matchesRisk;
   });
 
   if (sortField) {
-    filteredVendors = [...filteredVendors].sort((a, b) => {
-      const aVal = a[sortField as keyof typeof a];
-      const bVal = b[sortField as keyof typeof b];
-      
+    filteredVendors = [...filteredVendors].sort((a: any, b: any) => {
+      const field = sortField as keyof typeof a;
+      const aVal = a[field];
+      const bVal = b[field];
       if (typeof aVal === "number" && typeof bVal === "number") {
         return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
       }
-      
-      return sortDirection === "asc" 
-        ? String(aVal).localeCompare(String(bVal))
-        : String(bVal).localeCompare(String(aVal));
+      return sortDirection === "asc"
+        ? String(aVal ?? "").localeCompare(String(bVal ?? ""))
+        : String(bVal ?? "").localeCompare(String(aVal ?? ""));
     });
   }
 
@@ -216,10 +182,10 @@ const Vendors = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Approved": return "bg-success/10 text-success border-success/20";
-      case "Under Review": return "bg-destructive/10 text-destructive border-destructive/20";
-      case "In Progress": return "bg-accent/10 text-accent border-accent/20";
-      case "Monitoring": return "bg-warning/10 text-warning border-warning/20";
+      case "active": return "bg-success/10 text-success border-success/20";
+      case "onboarding": return "bg-accent/10 text-accent border-accent/20";
+      case "inactive": return "bg-secondary/10 text-secondary border-secondary/20";
+      case "suspended": return "bg-destructive/10 text-destructive border-destructive/20";
       default: return "bg-secondary/10 text-secondary border-secondary/20";
     }
   };
@@ -277,9 +243,10 @@ const Vendors = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Under Review">Under Review</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Approved">Approved</SelectItem>
+                        <SelectItem value="onboarding">Onboarding</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="suspended">Suspended</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -362,10 +329,10 @@ const Vendors = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Under Review">Under Review</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Approved">Approved</SelectItem>
-                        <SelectItem value="Monitoring">Monitoring</SelectItem>
+                        <SelectItem value="onboarding">Onboarding</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="suspended">Suspended</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -446,10 +413,10 @@ const Vendors = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="Approved">Approved</SelectItem>
-                    <SelectItem value="Under Review">Under Review</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Monitoring">Monitoring</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="onboarding">Onboarding</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -485,7 +452,7 @@ const Vendors = () => {
                   </th>
                   <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">Category</th>
                   <th className="text-left py-4 px-6 text-sm font-semibold text-foreground">
-                    <button onClick={() => handleSort("riskScore")} className="flex items-center space-x-1 hover:text-primary">
+                    <button onClick={() => handleSort("risk_score")} className="flex items-center space-x-1 hover:text-primary">
                       <span>Risk Score</span>
                       <ArrowUpDown className="h-3 w-3" />
                     </button>
@@ -507,22 +474,22 @@ const Vendors = () => {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-2">
-                        <div className="text-lg font-bold text-foreground">{vendor.riskScore}</div>
+                        <div className="text-lg font-bold text-foreground">{vendor.risk_score}</div>
                         <span className="text-xs text-muted-foreground">/100</span>
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <Badge variant={getRiskColor(vendor.riskLevel)}>
-                        {vendor.riskLevel}
+                      <Badge variant={getRiskColor(riskLabel(vendor.risk_level))}>
+                        {riskLabel(vendor.risk_level)}
                       </Badge>
                     </td>
                     <td className="py-4 px-6">
                       <Badge variant="outline" className={getStatusColor(vendor.status)}>
-                        {vendor.status}
+                        {String(vendor.status).charAt(0).toUpperCase() + String(vendor.status).slice(1)}
                       </Badge>
                     </td>
                     <td className="py-4 px-6">
-                      <span className="text-sm text-muted-foreground">{vendor.lastAssessment}</span>
+                      <span className="text-sm text-muted-foreground">{new Date(vendor.created_at).toISOString().split('T')[0]}</span>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-2">
