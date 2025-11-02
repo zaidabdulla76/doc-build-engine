@@ -57,7 +57,7 @@ const Stakeholders = () => {
 
     addStakeholder({
       ...newStakeholder,
-      vendor_id: newStakeholder.vendor_id || undefined,
+      vendor_id: newStakeholder.vendor_id === "unassigned" ? undefined : newStakeholder.vendor_id || undefined,
     });
 
     setNewStakeholder({
@@ -84,7 +84,7 @@ const Stakeholders = () => {
       department: stakeholder.department || "",
       persona_type: stakeholder.persona_type || "",
       influence_level: stakeholder.influence_level || "medium",
-      vendor_id: stakeholder.vendor_id || "",
+      vendor_id: stakeholder.vendor_id || "unassigned",
       notes: stakeholder.notes || ""
     });
     setIsEditDialogOpen(true);
@@ -105,7 +105,7 @@ const Stakeholders = () => {
       id: editingStakeholder.id,
       updates: {
         ...newStakeholder,
-        vendor_id: newStakeholder.vendor_id || undefined,
+        vendor_id: newStakeholder.vendor_id === "unassigned" ? undefined : newStakeholder.vendor_id || undefined,
       },
     });
 
@@ -245,7 +245,7 @@ const Stakeholders = () => {
             <SelectValue placeholder="Select vendor (optional)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Unassigned</SelectItem>
+            <SelectItem value="unassigned">Unassigned</SelectItem>
             {vendors.map((vendor) => (
               <SelectItem key={vendor.id} value={vendor.id}>
                 {vendor.name}
