@@ -12,7 +12,8 @@ import {
   GitBranch,
   Settings as SettingsIcon,
   Bell,
-  LogOut
+  LogOut,
+  UserCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +44,7 @@ export const Navigation = () => {
   const navItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/" },
     { name: "Vendors", icon: Users, path: "/vendors" },
+    { name: "Stakeholders", icon: UserCircle, path: "/stakeholders" },
     { name: "Assessments", icon: FileSearch, path: "/assessments" },
     { name: "Monitoring", icon: Activity, path: "/monitoring" },
     { name: "Reports", icon: BarChart3, path: "/reports" },

@@ -20,19 +20,22 @@ import {
   Edit,
   Trash2,
   Users,
-  Bot
+  Bot,
+  UserCircle
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { toast } from "@/hooks/use-toast";
 import { agents } from "@/data/agents";
 import { useVendorDetail } from "@/hooks/useVendorDetail";
 import { useVendors } from "@/hooks/useVendors";
+import { useStakeholders } from "@/hooks/useStakeholders";
 
 const VendorDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { vendor, assignedAgents, isLoading, assessments, documents } = useVendorDetail(id!);
   const { deleteVendor } = useVendors();
+  const { stakeholders: vendorStakeholders } = useStakeholders(id);
 
   const handleEdit = () => {
     toast({
@@ -242,6 +245,7 @@ const VendorDetail = () => {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="bg-secondary">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
             <TabsTrigger value="assessments">Assessments</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="findings">Key Findings</TabsTrigger>
@@ -299,6 +303,80 @@ const VendorDetail = () => {
                 </ResponsiveContainer>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="stakeholders">
+            <Card className="bg-card border-border p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <UserCircle className="h-5 w-5 text-primary" />
+                  Stakeholders
+                </h3>
+                <Button size="sm" onClick={() => navigate("/stakeholders")}>
+                  Manage All Stakeholders
+                </Button>
+              </div>
+              <div className="space-y-4">
+                {vendorStakeholders.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No stakeholders assigned to this vendor</p>
+                ) : (
+                  vendorStakeholders.map((stakeholder) => (
+                    <div 
+                      key={stakeholder.id}
+                      className="border border-border rounded-lg p-4 hover:bg-secondary/30 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 flex-1">
+                          <UserCircle className="h-10 w-10 text-muted-foreground" />
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-foreground">{stakeholder.name}</h4>
+                            {stakeholder.role && (
+                              <p className="text-sm text-muted-foreground">{stakeholder.role}</p>
+                            )}
+                            {stakeholder.department && (
+                              <p className="text-xs text-muted-foreground">{stakeholder.department}</p>
+                            )}
+                            <div className="flex flex-col gap-1 mt-2">
+                              {stakeholder.email && (
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Mail className="h-3 w-3" />
+                                  {stakeholder.email}
+                                </div>
+                              )}
+                              {stakeholder.phone && (
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Phone className="h-3 w-3" />
+                                  {stakeholder.phone}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          {stakeholder.influence_level && (
+                            <Badge variant={
+                              stakeholder.influence_level === "high" ? "destructive" :
+                              stakeholder.influence_level === "medium" ? "default" :
+                              "secondary"
+                            }>
+                              {stakeholder.influence_level} influence
+                            </Badge>
+                          )}
+                          {stakeholder.persona_type && (
+                            <Badge variant="outline">{stakeholder.persona_type}</Badge>
+                          )}
+                        </div>
+                      </div>
+                      {stakeholder.notes && (
+                        <p className="text-sm text-muted-foreground mt-3 pt-3 border-t border-border">
+                          {stakeholder.notes}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </Card>
           </TabsContent>
 
           <TabsContent value="assessments">

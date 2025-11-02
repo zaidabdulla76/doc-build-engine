@@ -149,6 +149,62 @@ export type Database = {
           },
         ]
       }
+      stakeholders: {
+        Row: {
+          created_at: string
+          department: string | null
+          email: string | null
+          id: string
+          influence_level: string | null
+          name: string
+          notes: string | null
+          persona_type: string | null
+          phone: string | null
+          role: string | null
+          updated_at: string
+          user_id: string
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id?: string
+          influence_level?: string | null
+          name: string
+          notes?: string | null
+          persona_type?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id: string
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id?: string
+          influence_level?: string | null
+          name?: string
+          notes?: string | null
+          persona_type?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string
+          user_id?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stakeholders_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_agents: {
         Row: {
           agent_id: string
