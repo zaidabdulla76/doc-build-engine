@@ -205,6 +205,30 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       vendor_agents: {
         Row: {
           agent_id: string
@@ -287,9 +311,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role:
+        | "procurement_director"
+        | "category_manager"
+        | "compliance_officer"
+        | "gcc_leader"
+        | "it_security_officer"
+        | "legal_team"
+        | "finance_team"
       assessment_status: "pending" | "in_progress" | "completed" | "failed"
       doc_status: "pending" | "processing" | "processed" | "failed"
       report_status: "pending" | "processing" | "ready" | "failed"
@@ -422,6 +471,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: [
+        "procurement_director",
+        "category_manager",
+        "compliance_officer",
+        "gcc_leader",
+        "it_security_officer",
+        "legal_team",
+        "finance_team",
+      ],
       assessment_status: ["pending", "in_progress", "completed", "failed"],
       doc_status: ["pending", "processing", "processed", "failed"],
       report_status: ["pending", "processing", "ready", "failed"],

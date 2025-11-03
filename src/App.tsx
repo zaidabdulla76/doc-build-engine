@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Vendors from "./pages/Vendors";
 import VendorDetail from "./pages/VendorDetail";
 import Stakeholders from "./pages/Stakeholders";
+import UserRoles from "./pages/UserRoles";
 import Assessments from "./pages/Assessments";
 import AssessmentDetail from "./pages/AssessmentDetail";
 import Monitoring from "./pages/Monitoring";
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/vendors" element={<ProtectedRoute><Vendors /></ProtectedRoute>} />
           <Route path="/vendors/:id" element={<ProtectedRoute><VendorDetail /></ProtectedRoute>} />
           <Route path="/stakeholders" element={<ProtectedRoute><Stakeholders /></ProtectedRoute>} />
+          <Route path="/user-roles" element={<ProtectedRoute><UserRoles /></ProtectedRoute>} />
           <Route path="/assessments" element={<ProtectedRoute><Assessments /></ProtectedRoute>} />
           <Route path="/assessments/:id" element={<ProtectedRoute><AssessmentDetail /></ProtectedRoute>} />
           <Route path="/monitoring" element={<ProtectedRoute><Monitoring /></ProtectedRoute>} />
