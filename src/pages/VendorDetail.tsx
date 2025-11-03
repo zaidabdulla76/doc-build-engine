@@ -29,6 +29,8 @@ import { agents } from "@/data/agents";
 import { useVendorDetail } from "@/hooks/useVendorDetail";
 import { useVendors } from "@/hooks/useVendors";
 import { useStakeholders } from "@/hooks/useStakeholders";
+import { AccessDenied } from "@/components/auth/AccessDenied";
+import { useUserRoles } from "@/hooks/useUserRoles";
 
 const VendorDetail = () => {
   const { id } = useParams();
@@ -36,6 +38,31 @@ const VendorDetail = () => {
   const { vendor, assignedAgents, isLoading, assessments, documents } = useVendorDetail(id!);
   const { deleteVendor } = useVendors();
   const { stakeholders: vendorStakeholders } = useStakeholders(id);
+  const { hasAnyRole } = useUserRoles();
+
+  const hasAccess = hasAnyRole([
+    "procurement_director",
+    "category_manager", 
+    "compliance_officer",
+    "gcc_leader",
+    "it_security_officer",
+    "legal_team",
+    "finance_team"
+  ]);
+
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-6 py-8">
+          <AccessDenied 
+            requiredRole="vendor access"
+            message="You need appropriate role permissions to view vendor details."
+          />
+        </main>
+      </div>
+    );
+  }
 
   const handleEdit = () => {
     toast({

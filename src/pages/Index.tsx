@@ -25,6 +25,8 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { RiskDistribution } from "@/components/dashboard/RiskDistribution";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { AIAgentsPanel } from "@/components/dashboard/AIAgentsPanel";
+import { RoleWelcome } from "@/components/dashboard/RoleWelcome";
+import { RoleBasedAccess } from "@/components/dashboard/RoleBasedAccess";
 import { Navigation } from "@/components/layout/Navigation";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -89,6 +91,10 @@ const Index = () => {
       <Navigation />
       
       <main className="container mx-auto px-6 py-8 space-y-8">
+        {/* Role Welcome & Quick Access */}
+        <RoleWelcome />
+        <RoleBasedAccess />
+        
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

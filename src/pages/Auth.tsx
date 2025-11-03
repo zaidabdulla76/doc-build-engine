@@ -6,8 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Loader2 } from "lucide-react";
+import { Shield, Loader2, Briefcase } from "lucide-react";
+import { AppRole, roleLabels, roleDescriptions } from "@/hooks/useUserRoles";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -16,6 +19,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState<AppRole | "">("");
+  const [fullName, setFullName] = useState("");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -65,10 +70,10 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword || !fullName || !selectedRole) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all fields and select your role",
         variant: "destructive",
       });
       return;
@@ -94,31 +99,58 @@ const Auth = () => {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          full_name: fullName,
+          requested_role: selectedRole,
+        }
       },
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       toast({
         title: "Signup Failed",
         description: error.message,
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Success",
-        description: "Account created successfully! You can now log in.",
-      });
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
+      return;
     }
+
+    // Assign the selected role to the user
+    if (data.user) {
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({
+          user_id: data.user.id,
+          role: selectedRole,
+        });
+
+      if (roleError) {
+        console.error("Role assignment error:", roleError);
+        toast({
+          title: "Warning",
+          description: "Account created but role assignment failed. Please contact an administrator.",
+          variant: "destructive",
+        });
+      }
+    }
+
+    setLoading(false);
+
+    toast({
+      title: "Success",
+      description: "Account created successfully! You can now log in.",
+    });
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setFullName("");
+    setSelectedRole("");
   };
 
   return (
@@ -188,7 +220,19 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="full-name">Full Name *</Label>
+                    <Input
+                      id="full-name"
+                      type="text"
+                      placeholder="John Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email *</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -200,7 +244,34 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="role-select">Your Role *</Label>
+                    <Select
+                      value={selectedRole}
+                      onValueChange={(value: AppRole) => setSelectedRole(value)}
+                      disabled={loading}
+                    >
+                      <SelectTrigger id="role-select">
+                        <SelectValue placeholder="Select your role in the organization" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(Object.entries(roleLabels) as [AppRole, string][]).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            <div className="flex flex-col items-start py-1">
+                              <div className="font-medium flex items-center gap-2">
+                                <Briefcase className="h-3 w-3" />
+                                {label}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {roleDescriptions[value]}
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Password *</Label>
                     <Input
                       id="signup-password"
                       type="password"
@@ -212,7 +283,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Label htmlFor="confirm-password">Confirm Password *</Label>
                     <Input
                       id="confirm-password"
                       type="password"
