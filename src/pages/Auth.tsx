@@ -180,6 +180,12 @@ const Auth = () => {
 
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="text-sm text-muted-foreground mb-4 p-3 bg-secondary/20 rounded-md border border-border/50">
+                    <p className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Your role and permissions are automatically loaded after login
+                    </p>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
                     <Input
