@@ -25,6 +25,8 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { RiskDistribution } from "@/components/dashboard/RiskDistribution";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { AIAgentsPanel } from "@/components/dashboard/AIAgentsPanel";
+import { PredictiveAnalytics } from "@/components/dashboard/PredictiveAnalytics";
+import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
 import { RoleWelcome } from "@/components/dashboard/RoleWelcome";
 import { RoleBasedAccess } from "@/components/dashboard/RoleBasedAccess";
 import { Navigation } from "@/components/layout/Navigation";
@@ -206,6 +208,12 @@ const Index = () => {
 
         {/* AI Agents Panel */}
         <AIAgentsPanel />
+
+        {/* Predictive Analytics */}
+        <PredictiveAnalytics />
+        
+        {/* Real-time Monitoring Alerts */}
+        <AlertsPanel />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

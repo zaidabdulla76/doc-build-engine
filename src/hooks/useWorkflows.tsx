@@ -34,7 +34,7 @@ export const useWorkflows = () => {
   });
 
   const createWorkflowMutation = useMutation({
-    mutationFn: async (workflow: Partial<Workflow>) => {
+    mutationFn: async (workflow: Omit<Workflow, "id" | "created_at" | "updated_at">) => {
       const { data, error } = await supabase
         .from("workflows")
         .insert([{ ...workflow, user_id: user?.id }])

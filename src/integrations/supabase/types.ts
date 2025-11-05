@@ -105,6 +105,50 @@ export type Database = {
           },
         ]
       }
+      monitoring_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          description: string
+          id: string
+          resolved_at: string | null
+          severity: string
+          status: string
+          title: string
+          vendor_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          description: string
+          id?: string
+          resolved_at?: string | null
+          severity: string
+          status?: string
+          title: string
+          vendor_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitoring_alerts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
@@ -303,6 +347,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      workflows: {
+        Row: {
+          assigned_role: string | null
+          config: Json | null
+          created_at: string
+          id: string
+          name: string
+          status: string
+          trigger_type: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_role?: string | null
+          config?: Json | null
+          created_at?: string
+          id?: string
+          name: string
+          status?: string
+          trigger_type?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_role?: string | null
+          config?: Json | null
+          created_at?: string
+          id?: string
+          name?: string
+          status?: string
+          trigger_type?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
