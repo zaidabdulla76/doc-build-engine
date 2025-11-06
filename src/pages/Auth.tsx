@@ -180,12 +180,6 @@ const Auth = () => {
 
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="text-sm text-muted-foreground mb-4 p-3 bg-secondary/20 rounded-md border border-border/50">
-                    <p className="flex items-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      Your role and permissions are automatically loaded after login
-                    </p>
-                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
                     <Input
@@ -210,6 +204,97 @@ const Auth = () => {
                       required
                     />
                   </div>
+
+                  <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                    <p className="text-sm font-semibold text-foreground mb-3">Demo Accounts (Password: demo123)</p>
+                    <div className="grid grid-cols-1 gap-2 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail("procurement@demo.com");
+                          setPassword("demo123");
+                        }}
+                        className="text-left px-3 py-2 bg-background hover:bg-accent/10 rounded border border-border transition-colors"
+                      >
+                        <span className="font-medium text-foreground">Procurement Director:</span>
+                        <span className="text-muted-foreground ml-2">procurement@demo.com</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail("category@demo.com");
+                          setPassword("demo123");
+                        }}
+                        className="text-left px-3 py-2 bg-background hover:bg-accent/10 rounded border border-border transition-colors"
+                      >
+                        <span className="font-medium text-foreground">Category Manager:</span>
+                        <span className="text-muted-foreground ml-2">category@demo.com</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail("compliance@demo.com");
+                          setPassword("demo123");
+                        }}
+                        className="text-left px-3 py-2 bg-background hover:bg-accent/10 rounded border border-border transition-colors"
+                      >
+                        <span className="font-medium text-foreground">Compliance Officer:</span>
+                        <span className="text-muted-foreground ml-2">compliance@demo.com</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail("gcc@demo.com");
+                          setPassword("demo123");
+                        }}
+                        className="text-left px-3 py-2 bg-background hover:bg-accent/10 rounded border border-border transition-colors"
+                      >
+                        <span className="font-medium text-foreground">GCC Leader:</span>
+                        <span className="text-muted-foreground ml-2">gcc@demo.com</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail("security@demo.com");
+                          setPassword("demo123");
+                        }}
+                        className="text-left px-3 py-2 bg-background hover:bg-accent/10 rounded border border-border transition-colors"
+                      >
+                        <span className="font-medium text-foreground">IT Security Officer:</span>
+                        <span className="text-muted-foreground ml-2">security@demo.com</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail("legal@demo.com");
+                          setPassword("demo123");
+                        }}
+                        className="text-left px-3 py-2 bg-background hover:bg-accent/10 rounded border border-border transition-colors"
+                      >
+                        <span className="font-medium text-foreground">Legal Team:</span>
+                        <span className="text-muted-foreground ml-2">legal@demo.com</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmail("finance@demo.com");
+                          setPassword("demo123");
+                        }}
+                        className="text-left px-3 py-2 bg-background hover:bg-accent/10 rounded border border-border transition-colors"
+                      >
+                        <span className="font-medium text-foreground">Finance Team:</span>
+                        <span className="text-muted-foreground ml-2">finance@demo.com</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-muted-foreground p-3 bg-secondary/20 rounded-md border border-border/50">
+                    <p className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Your role and permissions are automatically loaded after login
+                    </p>
+                  </div>
+
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? (
                       <>

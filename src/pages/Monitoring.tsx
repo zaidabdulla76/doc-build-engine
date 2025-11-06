@@ -6,8 +6,10 @@ import { AlertTriangle, TrendingDown, TrendingUp, Bell, CheckCircle2, Activity }
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useMonitoring } from "@/hooks/useMonitoring";
 
 const Monitoring = () => {
+  const { alerts: dbAlerts, isLoading, updateAlertStatus } = useMonitoring();
   const [alerts, setAlerts] = useState([
     {
       id: 1,
@@ -54,8 +56,16 @@ const Monitoring = () => {
     });
   };
 
-  const handleDismiss = (alertId: number) => {
-    setAlerts(alerts.filter(a => a.id !== alertId));
+  const handleDismiss = (alertId: number | string) => {
+    // Check if it's a database alert
+    const dbAlert = dbAlerts.find((a: any) => a.id === alertId);
+    if (dbAlert) {
+      updateAlertStatus({ id: alertId as string, status: "resolved" });
+    } else {
+      // Mock alert
+      setAlerts(alerts.filter(a => a.id !== alertId));
+    }
+    
     toast({
       title: "Alert Dismissed",
       description: "Alert has been removed from your active list"
@@ -79,6 +89,20 @@ const Monitoring = () => {
     }
   };
 
+  // Combine mock alerts with database alerts
+  const allAlerts = [
+    ...alerts,
+    ...dbAlerts.map((a: any) => ({
+      id: a.id,
+      severity: a.severity,
+      vendor: a.vendors?.name || "Unknown Vendor",
+      type: a.alert_type,
+      message: a.message,
+      time: new Date(a.created_at).toLocaleDateString(),
+      trend: "neutral"
+    }))
+  ];
+
   const monitoringMetrics = [
     {
       title: "Active Monitors",
@@ -94,7 +118,7 @@ const Monitoring = () => {
     },
     {
       title: "Active Alerts",
-      value: alerts.length.toString(),
+      value: allAlerts.length.toString(),
       subtitle: "Requiring attention",
       icon: Bell
     },
@@ -107,10 +131,10 @@ const Monitoring = () => {
   ];
 
   const alertDistribution = {
-    Critical: alerts.filter(a => a.severity === "Critical").length,
-    High: alerts.filter(a => a.severity === "High").length,
-    Medium: alerts.filter(a => a.severity === "Medium").length,
-    Low: alerts.filter(a => a.severity === "Low").length
+    Critical: allAlerts.filter(a => a.severity === "Critical" || a.severity === "critical").length,
+    High: allAlerts.filter(a => a.severity === "High" || a.severity === "high").length,
+    Medium: allAlerts.filter(a => a.severity === "Medium" || a.severity === "medium").length,
+    Low: allAlerts.filter(a => a.severity === "Low" || a.severity === "low").length
   };
 
   const totalAlerts = Object.values(alertDistribution).reduce((a, b) => a + b, 0);
@@ -156,13 +180,18 @@ const Monitoring = () => {
           </div>
 
           <div className="space-y-4">
-            {alerts.length === 0 ? (
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading alerts...</p>
+              </div>
+            ) : allAlerts.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <CheckCircle2 className="h-12 w-12 mx-auto mb-2 text-success" />
                 <p>No active alerts at this time</p>
               </div>
             ) : (
-              alerts.map((alert) => (
+              allAlerts.map((alert) => (
                 <div
                   key={alert.id}
                   className="bg-secondary/30 border border-border rounded-lg p-4 hover:bg-secondary/50 transition-colors"

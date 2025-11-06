@@ -7,8 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Clock, XCircle, AlertTriangle, User, FileText } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useWorkflows } from "@/hooks/useWorkflows";
 
 const Workflows = () => {
+  const { workflows, isLoading, updateWorkflow } = useWorkflows();
   const [pendingApprovals, setPendingApprovals] = useState([
     {
       id: 1,
@@ -75,6 +77,16 @@ const Workflows = () => {
 
   const handleApprove = () => {
     if (selectedApproval) {
+      // If it's a real workflow from the database
+      if (workflows.find((w: any) => w.id === selectedApproval.id)) {
+        updateWorkflow({
+          id: selectedApproval.id,
+          updates: {
+            status: "completed"
+          }
+        });
+      }
+      
       setPendingApprovals(pendingApprovals.filter(a => a.id !== selectedApproval.id));
       setCompletedApprovals([
         {
@@ -101,6 +113,16 @@ const Workflows = () => {
 
   const handleReject = () => {
     if (selectedApproval) {
+      // If it's a real workflow from the database
+      if (workflows.find((w: any) => w.id === selectedApproval.id)) {
+        updateWorkflow({
+          id: selectedApproval.id,
+          updates: {
+            status: "paused"
+          }
+        });
+      }
+      
       setPendingApprovals(pendingApprovals.filter(a => a.id !== selectedApproval.id));
       setCompletedApprovals([
         {
